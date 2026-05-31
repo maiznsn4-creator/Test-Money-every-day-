@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="km">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Money Everyday | Telegram App</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Kantumruy+Pro:wght@400;600;700&family=Moul&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+    <style>
+        :root {
+            --cyber-bg: #0b0f19;
+            --neon-green: #00ffa3;
+            --neon-gold: #ffd700;
+            --neon-red: #ff3b30;
+            --card-dark: #161f32;
+            --text-light: #e2e8f0;
+            --border-neon: rgba(0, 255, 163, 0.2);
+            --glow: 0 0 15px rgba(0, 255, 163, 0.4);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Kantumruy Pro', sans-serif; }
+        body { 
+            background-color: var(--cyber-bg); 
+            color: var(--text-light); 
+            padding: 15px; 
+            overflow-x: hidden; 
+            min-height: 100vh;
+            position: relative;
+        }
+
+        /* --- ចលនាកាក់ និងលុយធ្លាក់ --- */
+        @keyframes moneyFall {
+            0% { transform: translateY(-50px) rotate(0deg); opacity: 0; }
+            10% { opacity: 1; }
+            100% { transform: translateY(100vh) rotate(360deg); opacity: 0; }
+        }
+        .money-item {
+            position: fixed;
+            top: -50px;
+            pointer-events: none;
+            z-index: 99;
+            animation: moneyFall infinite linear;
+        }
+
+        /* Cyber Header */
+        .cyber-header {
+            background: var(--card-dark);
+            border: 1px solid var(--neon-green);
+            box-shadow: var(--glow);
+            padding: 14px;
+            border-radius: 16px;
+            text-align: center;
+            margin-bottom: 15px;
+        }
+        .cyber-header h1 {
+            font-family: 'Moul';
+            font-size: 14px;
+            color: var(--neon-green);
+            letter-spacing: 1px;
+            text-shadow: 0 0 8px rgba(0, 255, 163, 0.6);
+        }
+
+        /* 🔗 ប៊ូតុងទំនាក់ទំនងពាណិជ្ជកម្ម @Vichit278 */
+        .ads-contact-btn {
+            background: linear-gradient(90deg, #ff9f43, #ff5252);
+            border: 1px solid var(--neon-gold);
+            border-radius: 14px;
+            padding: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            color: #fff;
+            text-decoration: none;
+            font-size: 12px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            box-shadow: 0 0 10px rgba(255, 159, 67, 0.3);
+            transition: transform 0.2s;
+        }
+        .ads-contact-btn:active {
+            transform: scale(0.98);
+        }
+
+        /* Cards */
+        .cyber-card {
+            background: var(--card-dark);
+            border-radius: 20px;
+            padding: 22px 18px;
+            border: 1px solid var(--border-neon);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        /* ផ្ទាំងបង្ខំឱ្យចូល Channel */
+        .channel-lock-box {
+            text-align: left;
+            margin: 18px 0;
+        }
+        .channel-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #0f172a;
+            padding: 14px;
+            border-radius: 12px;
+            margin-bottom: 12px;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+        .channel-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .channel-info i {
+            font-size: 20px;
+            color: #38bdf8;
+        }
+        .channel-name {
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .join-btn {
+            background: #38bdf8;
+            color: #fff;
+            padding: 6px 14px;
+            border-radius: 8px;
+            font-size: 11px;
+            font-weight: 700;
+            text-decoration: none;
+            box-shadow: 0 0 8px rgba(56, 189, 248, 0.3);
+        }
+
+        /* VIP Badge */
+        .player-vip-badge {
+            background: rgba(0, 255, 163, 0.1);
+            border: 1px solid var(--neon-green);
+            padding: 8px 12px;
+            border-radius: 10px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 12px;
+            font-size: 13px;
+        }
+
+        /* Grid */
+        .cyber-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin: 15px 0;
+        }
+        .cyber-box {
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(255,255,255,0.05);
+            padding: 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            color: #94a3b8;
+        }
+        .cyber-box span {
+            display: block;
+            font-size: 16px;
+            color: var(--neon-green);
+            font-weight: 700;
+            margin-top: 4px;
+        }
+
+        /* Buttons */
+        .cyber-btn {
+            width: 100%;
+            background: linear-gradient(90deg, #00ffa3, #02b074);
+            color: #000;
+            border: none;
+            padding: 14px;
+            border-radius: 12px;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: var(--glow);
+            text-transform: uppercase;
+        }
+
+        .cyber-code-box {
+            background: #090d16;
+            border: 1px dashed var(--neon-gold);
+            padding: 12px;
+            border-radius: 12px;
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--neon-gold);
+            letter-spacing: 2px;
+            margin: 12px 0;
+        }
+
+        .link-share-container {
+            background: #0f172a;
+            padding: 10px;
+            border-radius: 10px;
+            font-size: 11px;
+            color: #38bdf8;
+            word-break: break-all;
+            margin-top: 8px;
+        }
+
+        .admin-cyber-panel {
+            display: none;
+            background: var(--card-dark);
+            border-radius: 16px;
+            padding: 15px;
+            margin-top: 20px;
+            border: 1px solid rgba(255, 215, 0, 0.2);
+            overflow-x: auto;
+        }
+        .cyber-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 11px;
+        }
+        .cyber-table th, .cyber-table td {
+            padding: 10px 8px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .cyber-footer {
+            text-align: center;
+            margin-top: 30px;
+            font-size: 11px;
+            color: #475569;
+            padding-bottom: 20px;
+        }
+        .admin-btn-trigger {
+            opacity: 0.2;
+            cursor: pointer;
+            margin-top: 15px;
+            display: inline-block;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="cyber-header">
+        <h1>TEST MONEY EVERYDAY</h1>
+    </div>
+
+    <a href="https://t.me/Vichit278" target="_blank" class="ads-contact-btn">
+        <i class="fa-solid fa-rectangle-ad" style="font-size: 16px;"></i>
+        <span>ទាក់ទងផ្សាយពាណិជ្ជកម្ម / បើកសហការ៖ @Vichit278</span>
+    </a>
+
+    <div class="cyber-card" id="loading-section">
+        <h2 style="color: var(--neon-green); font-size:13px;"><i class="fa-solid fa-satellite-dish fa-spin"></i> កំពុងពិនិត្យមើលស្ថានភាពសមាជិក...</h2>
+    </div>
+
+    <div class="cyber-card" id="lock-section" style="display: none;">
+        <h2 style="color: var(--neon-gold); font-size: 14px;"><i class="fa-solid fa-circle-exclamation"></i> ផ្ទាំងចាក់សោសុវត្ថិភាព!</h2>
+        <p style="font-size: 11px; color: #94a3b8; margin-top: 6px; line-height: 1.6;">សូមចុចរួមរស់ (Join) ជាមួយបណ្តាញតេឡេក្រាមទាំង ៣ ខាងក្រោមនេះសិន ទើបប្រព័ន្ធអនុញ្ញាតឱ្យបើកលេង និងផ្សងសំណាងយកលុយបាន។</p>
+        
+        <div class="channel-lock-box">
+            <div class="channel-item">
+                <div class="channel-info">
+                    <i class="fa-brands fa-telegram"></i>
+                    <div>
+                        <div class="channel-name">Channel ផ្សងសំណាង ០១</div>
+                        <div style="font-size:10px; color:#64748b;">តម្រូវឱ្យចូលរួមជាដាច់ខាត</div>
+                    </div>
+                </div>
+                <a href="https://t.me/+_OUOsL7nzdE5MGVl" target="_blank" class="join-btn">Join Channel <i class="fa-solid fa-arrow-up-right-from-square"></i></a>
+            </div>
+
+            <div class="channel-item">
+                <div class="channel-info">
+                    <i class="fa-brands fa-telegram"></i>
+                    <div>
+                        <div class="channel-name">Channel ផ្សងសំណាង ០២</div>
+                        <div style="font-size:10px; color:#64748b;">តម្រូវឱ្យចូលរួមជាដាច់ខាត</div>
+                    </div>
+                </div>
+                <a href="https://t.me/+xngtXAje9l1hMWY1" target="_blank" class="join-btn">Join Channel <i class="fa-solid fa-arrow-up-right-from-square"></i></a>
+            </div>
+
+            <div class="channel-item">
+                <div class="channel-info">
+                    <i class="fa-brands fa-telegram"></i>
+                    <div>
+                        <div class="channel-name">Channel ផ្សងសំណាង ០៣</div>
+                        <div style="font-size:10px; color:#64748b;">តម្រូវឱ្យចូលរួមជាដាច់ខាត</div>
+                    </div>
+                </div>
+                <a href="https://t.me/+SSVKt8XLQZ44ZTQ1" target="_blank" class="join-btn">Join Channel <i class="fa-solid fa-arrow-up-right-from-square"></i></a>
+            </div>
+        </div>
+
+        <button class="cyber-btn" onclick="verifyChannelsWithAlert()"><i class="fa-solid fa-shield-heart"></i> ផ្ទៀងផ្ទាត់ការចូលរួមឥឡូវនេះ</button>
+    </div>
+
+    <div class="cyber-card" id="game-section" style="display: none;">
+        <div class="player-vip-badge">
+            <i class="fa-solid fa-id-card-clip"></i>
+            <span>សមាជិក VIP៖ <b id="display-player-name" style="color: #fff;"></b></span>
+        </div>
+        <p style="font-size: 11px; color:#64748b; margin-top:-5px;">SYSTEM ID: <span id="display-player-id"></span></p>
+        
+        <div class="cyber-grid">
+            <div class="cyber-box">សិទ្ធិបើកប្រចាំថ្ងៃ<span id="draw-count">0 / 3</span></div>
+            <div class="cyber-box">ចំនួនណែនាំមិត្តភក្តិ<span id="ref-count">0 នាក់</span></div>
+        </div>
+
+        <button class="cyber-btn" id="draw-btn" onclick="generateNewLuckyMoney()"><i class="fa-solid fa-bolt"></i> ចុចបើកលេខសំណាង</button>
+
+        <div style="font-size:11px; margin-top:18px; color:var(--neon-gold); text-align:left; font-weight:600;"><i class="fa-solid fa-fingerprint"></i> លេខសំណាងឌីជីថលរបស់អ្នក៖</div>
+        <div class="cyber-code-box" id="code-result">------</div>
+
+        <div style="margin-top: 20px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 12px; text-align: left;">
+            <h4 style="font-size: 11px; color: #94a3b8;"><i class="fa-solid fa-network-wired"></i> ណែនាំមិត្តភក្តិដើម្បីទទួលបានសិទ្ធិបើកបន្ថែម៖</h4>
+            <div class="link-share-container" id="ref-link-text">GENERATING SYSTEM LINK...</div>
+            <button class="cyber-btn" style="margin-top: 10px; background: linear-gradient(90deg, #38bdf8, #0284c7); color:#fff; padding: 12px; box-shadow:none;" onclick="shareToTelegramChat()"><i class="fa-solid fa-share-nodes"></i> ចែករំលែកទៅកាន់ Telegram</button>
+        </div>
+    </div>
+
+    <div class="admin-cyber-panel" id="admin-section">
+        <h3 style="font-size:12px; margin-bottom:10px; color:var(--neon-gold); font-family:'Moul';"><i class="fa-solid fa-user-shield"></i> ទិន្នន័យមេ (ADMIN DATABASE)</h3>
+        <table class="cyber-table">
+            <thead>
+                <tr>
+                    <th>អ្នកលេង/ID</th>
+                    <th>លេខសំណាង</th>
+                    <th>ណែនាំ (នាក់)</th>
+                </tr>
+            </thead>
+            <tbody id="admin-rows">
+                </tbody>
+        </table>
+    </div>
+
+    <div class="cyber-footer">
+        <p>POWERED BY TEST MONEY EVERYDAY &copy; 2026</p>
+        <span class="admin-btn-trigger" onclick="accessSecretAdmin()"><i class="fa-solid fa-terminal"></i> កូដបញ្ជាម្ចាស់ប្រព័ន្ធ</span>
+    </div>
+
+    <script>
+        const tg = window.Telegram.WebApp;
+        tg.expand();
+
+        // 🔗 Firebase Config របស់បង
+        const firebaseConfig = {
+            apiKey: "AIzaSyD0CoOErw8unJ2lGF3K4BqTAn0eFq3ycI",
+            authDomain: "myessayapp.firebaseapp.com",
+            databaseURL: "https://myessayapp-default-rtdb.firebaseio.com",
+            projectId: "myessayapp",
+            storageBucket: "myessayapp.firebasestorage.app",
+            messagingSenderId: "410054064875",
+            appId: "1:410054064875:web:7d073851f478564eb39cae"
+        };
+        
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        // ទិន្នន័យ Bot API និង ID របស់ Channels ទាំង ៣
+        const BOT_TOKEN = "8696712050:AAGZUQTmlAk34HygIvahYrSULghFc--jrdE";
+        const BOT_USERNAME = "TestMoneyeveryday_bot";
+        const CHANNELS = [
+            "-1003920421393",
+            "-1003696808566",
+            "-1003698467562"
+        ];
+
+        let telegramUser = tg.initDataUnsafe.user || null;
+
+        // សម្រាប់តេស្តលើ Browser ទូទៅ (បើអត់មាន Telegram ID)
+        if (!telegramUser) {
+            telegramUser = {
+                id: 5010333081,
+                first_name: "Cyber_User_Test",
+                username: "cyber_dev"
+            };
+        }
+
+        window.addEventListener('load', () => {
+            startMoneyRainEffect();
+            checkUserChannelMembership();
+        });
+
+        // 🔍 ប្រព័ន្ធចាក់សោដំបូង៖ ឆែកមើលការ Join ឆានែលទាំង ៣ ភ្លាមៗពេលបើក App
+        async function checkUserChannelMembership() {
+            const userId = telegramUser.id;
+            let joinedAll = true;
+
+            for (let channelId of CHANNELS) {
+                try {
+                    const response = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/getChatMember?chat_id=${channelId}&user_id=${userId}`);
+                    const result = await response.json();
+                    
+                    if (result.ok) {
+                        const status = result.result.status;
+                        // បើ Status ជា left ឬ kicked មានន័យថាអត់ទាន់ចូលទេ
+                        if (status === 'left' || status === 'kicked') {
+                            joinedAll = false;
+                            break;
+                        }
+                    } else {
+                        joinedAll = false;
+                        break;
+                    }
+                } catch (error) {
+                    joinedAll = false;
+                    break;
+                }
+            }
+
+            document.getElementById('loading-section').style.display = 'none';
+
+            if (joinedAll) {
+                initializeCyberSystem(); // បើ Join គ្រប់អស់ហើយ ឱ្យទៅផ្ទាំងហ្គេម
+            } else {
+                document.getElementById('lock-section').style.display = 'block'; // បើមិនទាន់ Join ឱ្យជាប់នៅផ្ទាំងចាក់សោ
+            }
+        }
+
+        // មុខងារចុចប៊ូតុង "ផ្ទៀងផ្ទាត់ការចូលរួម"
+        function verifyChannelsWithAlert() {
+            Swal.fire({
+                title: 'កំពុងពិនិត្យមើល...',
+                text: 'ប្រព័ន្ធកំពុងផ្ទៀងផ្ទាត់គណនីតេឡេក្រាមរបស់អ្នក ជាមួយឆានែល',
+                allowOutsideClick: false,
+                didOpen: () => { Swal.showLoading(); }
+            });
+
+            setTimeout(async () => {
+                const userId = telegramUser.id;
+                let joinedAll = true;
+
+                for (let channelId of CHANNELS) {
+                    try {
+                        const response = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/getChatMember?chat_id=${channelId}&user_id=${userId}`);
+                        const result = await response.json();
+                        if (result.ok) {
+                            const status = result.result.status;
+                            if (status === 'left' || status === 'kicked') { joinedAll = false; break; }
+                        } else { joinedAll = false; break; }
+                    } catch (e) { joinedAll = false; break; }
+                }
+
+                Swal.close();
+
+                if (joinedAll) {
+                    document.getElementById('lock-section').style.display = 'none';
+                    Swal.fire('ការផ្ទៀងផ្ទាត់ជោគជ័យ!', 'ប្រព័ន្ធបានបើកសោជូនហើយ រីករាយការផ្សងសំណាង!', 'success');
+                    initializeCyberSystem(); // បើកផ្ទាំងហ្គេម
+                } else {
+                    Swal.fire({
+                        title: 'ផ្ទៀងផ្ទាត់បរាជ័យ!',
+                        text: 'អ្នកមិនទាន់បានចូលរួម Channel ឱ្យបានគ្រប់ចំនួននៅឡើយទេ។ សូមចុច Join ឱ្យគ្រប់ទាំង ៣ សិនបង!',
+                        icon: 'error',
+                        confirmButtonColor: '#ff3b30'
+                    });
+                }
+            }, 1500);
+        }
+
+        // ប្រព័ន្ធគ្រប់គ្រងទិន្នន័យអ្នកលេងនៅលើ Firebase
+        function initializeCyberSystem() {
+            const userId = telegramUser.id.toString();
+            
+            db.ref('test_money_players/' + userId).once('value').then((snapshot) => {
+                const data = snapshot.val();
+                if (data) {
+                    loadCyberPlayerData(userId);
+                } else {
+                    let referralBoss = "";
+                    if (tg.initDataUnsafe.start_param) {
+                        const param = tg.initDataUnsafe.start_param;
+                        if (param.startsWith('ref_')) { referralBoss = param.replace('ref_', ''); }
+                    }
+
+                    const initialCode = generateCyberCode();
+                    const newPlayerData = {
+                        id: userId,
+                        name: telegramUser.first_name,
+                        username: telegramUser.username || "មិនមាន",
+                        luckyCode: initialCode,
+                        referredBy: referralBoss,
+                        referralCount: 0,
+                        totalDrawsClaimed: 0,
+                        lastDrawDate: ""
+                    };
+
+                    db.ref('test_money_players/' + userId).set(newPlayerData).then(() => {
+                        if (referralBoss && referralBoss !== userId) {
+                            db.ref('test_money_players/' + referralBoss).runTransaction((user) => {
+                                if (user) { user.referralCount = (user.referralCount || 0) + 1; }
+                                return user;
+                            });
+                        }
+                        loadCyberPlayerData(userId);
+                    });
+                }
+            });
+        }
+
+        function generateCyberCode() {
+            const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+            const nums = "0123456789";
+            let p1 = ""; let p2 = "";
+            for (let i = 0; i < 5; i++) p1 += chars.charAt(Math.floor(Math.random() * chars.length));
+            for (let i = 0; i < 4; i++) p2 += nums.charAt(Math.floor(Math.random() * nums.length));
+            return
+      
